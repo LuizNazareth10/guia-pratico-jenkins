@@ -4,14 +4,19 @@ pipeline{
     stages{
         stage('Build Docker Image') {
             steps {
-                sh 'echo "Building Docker Image..."'
-                // Add your build commands here
+                script {
+                    dockerapp = docker.build("luiznazareth/guia-jenkins:${env.BUILD_ID}", '-f ./src/Dockerfile ./src')
+                }
             }
         }
         stage('Push Docker Image') {
             steps {
-                sh 'echo "Pushing Docker Image to Registry..."'
-                // Add your push commands here
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        dockerapp.push('latest')
+                        dockerapp.push("${env.BUILD_ID}")
+                    }
+                }
             }
         }
         stage('Deploy no Kubernetes') {
